@@ -5,6 +5,7 @@ import Subscription from '../models/Subscription';
 import Queue from '../../lib/Queue';
 import SubscriptionMail from '../jobs/SubscriptionMail';
 import User from '../models/User';
+import File from '../models/File';
 
 class SubscriptionController {
   async index(req, res) {
@@ -12,6 +13,7 @@ class SubscriptionController {
       where: {
         user_id: req.userId,
       },
+      attributes: [],
       include: [
         {
           model: Meetup,
@@ -22,6 +24,14 @@ class SubscriptionController {
             },
           },
           required: true,
+          attributes: ['id', 'title', 'description', 'location', 'date'],
+          include: [
+            {
+              model: File,
+              as: 'banner',
+              attributes: ['id', 'name', 'url', 'path'],
+            },
+          ],
         },
       ],
       order: [['meetup', 'date']],

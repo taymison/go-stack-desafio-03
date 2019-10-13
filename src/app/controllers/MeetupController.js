@@ -4,6 +4,7 @@ import { Op } from 'sequelize';
 
 import Meetup from '../models/Meetup';
 import User from '../models/User';
+import File from '../models/File';
 
 class MeetupController {
   async index(req, res) {
@@ -17,13 +18,20 @@ class MeetupController {
           [Op.between]: [startOfDay(parsedDate), endOfDay(parsedDate)],
         },
       },
+      attributes: ['id', 'title', 'description', 'location', 'past', 'date'],
       order: ['date'],
       limit: 10,
       offset: (page - 1) * 10,
       include: [
         {
+          model: File,
+          as: 'banner',
+          attributes: ['id', 'url', 'path', 'name'],
+        },
+        {
           model: User,
           as: 'organizer',
+          attributes: ['id', 'name', 'email'],
         },
       ],
     });
@@ -110,7 +118,24 @@ class MeetupController {
   async delete(req, res) {
     const { meetupId } = req.params;
 
-    const meetup = await Meetup.findByPk(meetupId);
+    const meetup = await Meetup.findByPk(meetupId, {
+      attributes: [
+        'id',
+        'past',
+        'title',
+        'description',
+        'location',
+        'date',
+        'user_id',
+      ],
+      include: [
+        {
+          model: File,
+          as: 'banner',
+          attributes: ['id', 'name', 'url', 'path'],
+        },
+      ],
+    });
 
     if (!meetup) {
       return res.status(401).json({
